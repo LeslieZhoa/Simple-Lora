@@ -58,16 +58,49 @@ python  train.py  --batch_size 1 --dist --train_text_encoder
 ## 推理
 ```py
 python inference.py \
-    --lora_path checkpoint/Lora/001-00002600.pth \
+    --mode 'lora' \
+    --lora_path checkpoint/Lora/000-00000600.pth \
+    --prompt  "<dlrb>,solo, long hair, black hair, choker, breasts, earrings, blue eyes, jewelry, lipstick, makeup, dark, bare shoulders, mountain, night, upper body, dress, large breasts, ((masterpiece))" \
+    --outpath results/1.png \
+    --num_images_per_prompt 2 
+```
+越少的训练图片，选取的模型迭代次数应该越小，比如单张图训练选1000左右，10张图训练选2500左右
+
+## controlnet
+新增controlnet转换，参考[Here](https://github.com/lllyasviel/ControlNet/discussions/12)<br>
+1. 下载原始模型[v1-5-pruned.ckpt](https://huggingface.co/runwayml/stable-diffusion-v1-5/blob/main/v1-5-pruned.ckpt),[control_sd15_openpose.pth](https://huggingface.co/lllyasviel/ControlNet/blob/main/models/control_sd15_openpose.pth)到pretrained_models中
+2. 将自有基础模型转换成controlnet形式<br>
+```
+python process/tool_transfer_control.py \
+--path_input pretrained_models/chilloutmix_NiPrunedFp32Fix/chilloutmix_NiPrunedFp32Fix.safetensors \
+--path_output pretrained_models/chilloutmix_control.pth
+```
+3. controlnet转成diffuser形式
+```py
+python process/convert_controlnet_to_diffusers.py \
+--checkpoint_path  pretrained_models/chilloutmix_control.pth \
+--original_config_file model/third/cldm_v15.yaml \
+--dump_path  pretrained_models/chilloutmix_control --device cuda
+```
+4. 下载openpose模型[body_pose_model.pth](https://huggingface.co/lllyasviel/ControlNet/resolve/main/annotator/ckpts/body_pose_model.pth),[hand_pose_model.pth](https://huggingface.co/lllyasviel/ControlNet/resolve/main/annotator/ckpts/hand_pose_model.pth)到pretrained_models/openpose下
+5. 推理
+```py
+python inference.py \
+    --mode 'control' \
+    --lora_path checkpoint/Lora/000-00000600.pth \
+    --control_path pretrained_models/chilloutmix_control \
+    --pose_img assets/pose.png \
     --prompt  "<dlrb>,solo, long hair, black hair, choker, breasts, earrings, blue eyes, jewelry, lipstick, makeup, dark, bare shoulders, mountain, night, upper body, dress, large breasts, ((masterpiece))" \
     --outpath results/1.png \
     --num_images_per_prompt 2
 ```
-越少的训练图片，选取的模型迭代次数应该越小，比如单张图训练选1000左右，10张图训练选2500左右
+![](./assets/2.png)
 
 ## 参考
 https://github.com/huggingface/diffusers<br>
 https://github.com/AUTOMATIC1111/stable-diffusion-webui<br>
 https://github.com/salesforce/BLIP<br>
-https://github.com/haofanwang/Lora-for-Diffusers
+https://github.com/haofanwang/Lora-for-Diffusers<br>
+https://github.com/lllyasviel/ControlNet<br>
+https://github.com/haofanwang/ControlNet-for-Diffusers
 

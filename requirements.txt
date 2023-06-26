@@ -4,5 +4,6 @@ timm==0.4.12
 fairscale==0.4.4
 tensorboardX
 imgaug
-torch>=1.11.0
+torch==1.11
 omegaconf
+pytorch-lightning==1.5.0

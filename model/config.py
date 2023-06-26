@@ -32,7 +32,7 @@ class Params:
         self.lr_scheduler = 'constant'
         self.lr_warmup_steps = 0
         self.gradient_accumulation_steps = 4
-        self.max_train_steps = 15000
+        self.max_train_steps = 2000
 
         # loss
         self.snr_gamma = None
