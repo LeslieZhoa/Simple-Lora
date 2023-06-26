@@ -1,5 +1,5 @@
 *pretrained_models
-*pt*
+*.pt*
 *__pycache__*
 *checkpoint*
 *result*
