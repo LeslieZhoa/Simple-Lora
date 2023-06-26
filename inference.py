@@ -6,22 +6,26 @@
 from typing import Any
 import torch
 import pdb 
-from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler,ControlNetModel,StableDiffusionControlNetPipeline
+from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler,ControlNetModel,StableDiffusionControlNetPipeline,StableDiffusionInpaintPipeline
 import argparse
 import os
 import numpy as np
 import cv2
 import PIL.Image as Image
 from model.third.openpose import OpenposeDetector
+from model.third.parsing.parsing import FaceParsing
 from diffusers.utils import load_image
 parser = argparse.ArgumentParser(description="infer")
 
 parser.add_argument('--basemodel',default='pretrained_models/chilloutmixNiPruned_Tw1O',type=str,help='base model path')
 parser.add_argument('--lora_path',default=None,type=str,help='lora model path')
 parser.add_argument('--control_path',default=None,type=str,help='controlnet model path')
+parser.add_argument('--inpait_path',default=None,type=str,help='inpait model path')
 parser.add_argument('--ref_img',default=None,type=str,help='ref image path')
 parser.add_argument('--pose_img',default=None,type=str,help='pose image path')
-parser.add_argument('--mode',default='lora',choices=['lora', 'control'])
+parser.add_argument('--mask',default=None,type=str,help='mask image path')
+parser.add_argument('--mask_area',default='all',choices=['hair', 'bg','all'])
+parser.add_argument('--mode',default='lora',choices=['lora', 'control','inpait'])
 parser.add_argument('--prompt',default=None,type=str,help='prompt')
 parser.add_argument('--neg_prompt',default='(painting by bad-artist-anime:0.9), (painting by bad-artist:0.9), watermark, text, error, blurry, jpeg artifacts, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, artist name, (worst quality, low quality:1.4), bad anatomy, watermark, signature, text, logo',type=str,help='negative prompt')
 parser.add_argument('--width',default=512,type=int,help='input image width')
@@ -56,7 +60,8 @@ class Infer:
         return input_kwargs
     
     def run(self,input_kwargs):
-        images = self.pipeline(**input_kwargs).images
+        with torch.no_grad():
+            images = self.pipeline(**input_kwargs).images
         images = np.concatenate(images,1)
         images = np.clip(images*255.,0,255).astype(np.uint8)
         images = cv2.cvtColor(images,cv2.COLOR_RGB2BGR)
@@ -113,9 +118,51 @@ class ControlInfer(Infer,OpenposeDetector):
             pose = Image.fromarray(pose,mode='RGB')
         input_kwargs = self.get_input_kwargs()
         input_kwargs['image'] = pose
+        
         self.run(input_kwargs)
 
+class InpaitInfer(Infer,FaceParsing):
+    def __init__(self, args):
+        Infer.__init__(self,args)
+        FaceParsing.__init__(self)
 
+        self.pipeline = StableDiffusionInpaintPipeline.from_pretrained(
+            self.args.inpait_path).to('cuda')
+        self.set_safety_checker()
+        self.index = []
+        if self.args.mask_area == 'hair':
+            self.index = [17]
+        elif self.args.mask_area == 'bg':
+            self.index = [0]
+        else:
+            self.index = [0,17]
+
+    def __call__(self):
+        img = cv2.imread(args.ref_img)
+        img = cv2.resize(img,(512,512))
+        img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+        inp = Image.fromarray(img,mode='RGB')
+        
+        if args.mask is None:
+            h,w,_ = img.shape
+            p_img = self.preprocess_parsing(img)
+            parsing = self.get_parsing(p_img)
+            parsing = self.postprocess_parsing(parsing,h,w)
+            mask = np.zeros((h,w,3),dtype=np.uint8)
+            for i in self.index:
+                mask[parsing==i] = 255
+            
+            mask = mask.astype(np.uint8)
+
+        else:
+            mask = cv2.imread(args.mask)
+        
+        mask = Image.fromarray(mask,mode='RGB')
+        input_kwargs = self.get_input_kwargs()
+        input_kwargs['image'] = inp
+        input_kwargs['mask_image'] = mask
+        del input_kwargs['cross_attention_kwargs']
+        self.run(input_kwargs)
 
 
 if __name__ == "__main__":
@@ -125,4 +172,6 @@ if __name__ == "__main__":
         infer = LoraInfer(args)
     elif args.mode == 'control':
         infer = ControlInfer(args)
+    elif args.mode == 'inpait':
+        infer = InpaitInfer(args)
     infer()

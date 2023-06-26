@@ -95,6 +95,26 @@ python inference.py \
     --num_images_per_prompt 2
 ```
 ![](./assets/2.png)
+## Inpaiting
+1. 下载模型
+```py
+cd pretrained_models
+git clone https://huggingface.co/runwayml/stable-diffusion-inpainting
+# 下载parsing模型
+wget https://github.com/LeslieZhoa/LVT/releases/download/v0.0/face_parsing.pt -P pretrained_models
+```
+2. 推理
+```py
+python inference.py \
+    --mode 'inpait' \
+    --inpait_path pretrained_models/stable-diffusion-inpainting \
+    --mask_area all \
+    --ref_img assets/ref.png \
+    --prompt  "green hair,short hair,curly hair, green hair,beach,seaside" \
+    --outpath results/1.png \
+    --num_images_per_prompt 2
+```
+![](./assets/3.png)
 
 ## 参考
 https://github.com/huggingface/diffusers<br>
