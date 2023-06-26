@@ -21,10 +21,10 @@ git clone https://huggingface.co/bert-base-uncased
 # 我选用的是chilloutmix_NiPrunedFp32Fix
 git clone https://huggingface.co/naonovn/chilloutmix_NiPrunedFp32Fix
 # safetenosor模型转换
-cd ../process
-python convert_original_stable_diffusion_to_difdusers.py \
-    --checkpoint_path ../pretrained_models/chilloutmix_NiPrunedFp32Fix/chilloutmix_NiPrunedFp32Fix.safetensors \
-    --dump_path ../pretrained_models/chilloutmixNiPruned_Tw1O --from_safetensors
+cd ..
+python process/convert_original_stable_diffusion_to_difdusers.py \
+    --checkpoint_path ./pretrained_models/chilloutmix_NiPrunedFp32Fix/chilloutmix_NiPrunedFp32Fix.safetensors \
+    --dump_path ./pretrained_models/chilloutmixNiPruned_Tw1O --from_safetensors
 ```
 ## 数据准备
 1. huggingface数据[option]<br>
@@ -40,11 +40,10 @@ git clone https://huggingface.co/datasets/lambdalabs/pokemon-blip-captions/
 以该图片为例，单张图片的lora训练<br>
 ```py
 # 图片文本获取
-cd process/blip
-python run.py --img_base ../../dataset/custom
+python process/run_caption.py --img_base ./dataset/custom
 
 # 将a woman 替换成<dlrb>
-python change_txt.py --img_base ../../dataset/dlrb --ori_txt 'a woman' --new_txt "<dlrb>"
+python process/change_txt.py --img_base ./dataset/custom --ori_txt 'a woman' --new_txt "<dlrb>"
 ```
 ## 训练
 参数调整[self.custom = True](./model/config.py#L5)为True使用用户数据，False使用huggingfaec数据<br>

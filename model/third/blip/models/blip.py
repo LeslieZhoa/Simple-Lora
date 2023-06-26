@@ -8,8 +8,8 @@
 import warnings
 warnings.filterwarnings("ignore")
 
-from models.vit import VisionTransformer, interpolate_pos_embed
-from models.med import BertConfig, BertModel, BertLMHeadModel
+from model.third.blip.models.vit import VisionTransformer, interpolate_pos_embed
+from model.third.blip.models.med import BertConfig, BertModel, BertLMHeadModel
 from transformers import BertTokenizer
 
 import torch
@@ -22,7 +22,7 @@ from timm.models.hub import download_cached_file
 
 class BLIP_Base(nn.Module):
     def __init__(self,                 
-                 med_config = 'configs/med_config.json',  
+                 med_config = 'model/third/blip/configs/med_config.json',  
                  image_size = 224,
                  vit = 'base',
                  vit_grad_ckpt = False,
@@ -77,7 +77,7 @@ class BLIP_Base(nn.Module):
         
 class BLIP_Decoder(nn.Module):
     def __init__(self,                 
-                 med_config = 'configs/med_config.json',  
+                 med_config = 'model/third/blip/configs/med_config.json',  
                  image_size = 384,
                  vit = 'base',
                  vit_grad_ckpt = False,
@@ -216,7 +216,7 @@ def blip_feature_extractor(pretrained='',**kwargs):
     return model        
 
 def init_tokenizer():
-    tokenizer = BertTokenizer.from_pretrained('../../pretrained_models/bert-base-uncased')
+    tokenizer = BertTokenizer.from_pretrained('./pretrained_models/bert-base-uncased')
     tokenizer.add_special_tokens({'bos_token':'[DEC]'})
     tokenizer.add_special_tokens({'additional_special_tokens':['[ENC]']})       
     tokenizer.enc_token_id = tokenizer.additional_special_tokens_ids[0]  
