@@ -144,3 +144,7 @@ https://github.com/haofanwang/ControlNet-for-Diffusers<br>
 https://github.com/haofanwang/T2I-Adapter-for-Diffusers<br>
 https://github.com/TencentARC/T2I-Adapter<br>
 https://github.com/HimariO/diffusers-t2i-adapter
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=LeslieZhoa/Simple-Lora&type=Date)](https://star-history.com/#LeslieZhoa/Simple-Lora&Date)
