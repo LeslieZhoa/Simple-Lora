@@ -9,7 +9,6 @@ class Params:
         self.pretrain_path = None
 
         # data 
-        self.resolution = 512
         self.center_crop = True
         self.random_flip = True
         self.dataset_name = './dataset/pokemon-blip-captions/data'
@@ -32,7 +31,7 @@ class Params:
         self.lr_scheduler = 'constant'
         self.lr_warmup_steps = 0
         self.gradient_accumulation_steps = 4
-        self.max_train_steps = 2000
+        self.max_train_steps = 600
 
         # loss
         self.snr_gamma = None

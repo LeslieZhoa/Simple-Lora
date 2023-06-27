@@ -124,6 +124,7 @@ class ControlInfer(Infer,OpenposeDetector):
             ref_img = cv2.imread(self.args.ref_img)
             pose,_ = self.get_pose(ref_img,hand=True)
             pose = Image.fromarray(pose,mode='RGB')
+        pose = pose.resize((self.args.width,self.args.height))
         input_kwargs = self.get_input_kwargs()
         input_kwargs['image'] = pose
         
@@ -147,7 +148,7 @@ class InpaitInfer(Infer,FaceParsing):
 
     def __call__(self):
         img = cv2.imread(args.ref_img)
-        img = cv2.resize(img,(512,512))
+        img = cv2.resize(img,(self.args.width,self.args.height))
         img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
         inp = Image.fromarray(img,mode='RGB')
         
@@ -166,6 +167,7 @@ class InpaitInfer(Infer,FaceParsing):
             mask = cv2.imread(args.mask)
         
         mask = Image.fromarray(mask,mode='RGB')
+        mask = mask.resize((self.args.width,self.args.height))
         input_kwargs = self.get_input_kwargs()
         input_kwargs['image'] = inp
         input_kwargs['mask_image'] = mask
@@ -205,9 +207,9 @@ class T2IInpaitInfer(Infer):
         return weight
     def __call__(self):
 
-        img = load_image(args.ref_img)
-        mask = load_image(args.mask)
-        adapter_mask = load_image(args.adapter_mask)
+        img = load_image(args.ref_img).resize((self.args.width,self.args.height))
+        mask = load_image(args.mask).resize((self.args.width,self.args.height))
+        adapter_mask = load_image(args.adapter_mask).resize((self.args.width,self.args.height))
         
         input_kwargs = self.get_input_kwargs()
         input_kwargs['image'] = img

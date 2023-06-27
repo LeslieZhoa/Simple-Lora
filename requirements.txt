@@ -7,3 +7,4 @@ imgaug
 torch==1.11
 omegaconf
 pytorch-lightning==1.5.0
+datasets==2.12.0
