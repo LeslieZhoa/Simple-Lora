@@ -36,8 +36,7 @@ cd dataset
 git clone https://huggingface.co/datasets/lambdalabs/pokemon-blip-captions/
 ```
 2. 用户数据[option]<br>
-![](./dataset/custom/11.jpeg)
-以该图片为例，单张图片的lora训练<br>
+单张图片的lora训练<br>
 ```py
 # 图片文本获取
 python process/run_caption.py --img_base ./dataset/custom
@@ -115,12 +114,31 @@ python inference.py \
     --num_images_per_prompt 2
 ```
 ![](./assets/3.png)
-
+## T2I-Adapter
+inpaiting更加丝滑<br>
+1. 下载adapter模型<br>
+```py
+wget https://huggingface.co/TencentARC/T2I-Adapter/resolve/main/models/t2iadapter_seg_sd14v1.pth -P pretrained_models
+```
+2. 推理
+```py
+python inference.py \
+    --mode 't2iinpait' \
+    --ref_img assets/t2i-input.png \
+    --mask assets/t2i-mask.png \
+    --adapter_mask assets/t2i-adapter.png \
+    --prompt  "green hair,curly hair, green hair,beach,seaside" \
+    --outpath results/1.png \
+    --num_images_per_prompt 2
+```
+![](./assets/4.png)
 ## 参考
 https://github.com/huggingface/diffusers<br>
 https://github.com/AUTOMATIC1111/stable-diffusion-webui<br>
 https://github.com/salesforce/BLIP<br>
 https://github.com/haofanwang/Lora-for-Diffusers<br>
 https://github.com/lllyasviel/ControlNet<br>
-https://github.com/haofanwang/ControlNet-for-Diffusers
-
+https://github.com/haofanwang/ControlNet-for-Diffusers<br>
+https://github.com/haofanwang/T2I-Adapter-for-Diffusers<br>
+https://github.com/TencentARC/T2I-Adapter<br>
+https://github.com/HimariO/diffusers-t2i-adapter

@@ -3,10 +3,15 @@
 @date 20230620
 '''
 
-from typing import Any
 import torch
 import pdb 
-from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler,ControlNetModel,StableDiffusionControlNetPipeline,StableDiffusionInpaintPipeline
+from diffusers import (StableDiffusionPipeline, 
+                       DPMSolverMultistepScheduler,
+                       ControlNetModel,
+                       StableDiffusionControlNetPipeline,
+                       StableDiffusionInpaintPipeline)
+
+from model.custom import StableDiffusionInpaitAdapterPipeline,T2IAdapter
 import argparse
 import os
 import numpy as np
@@ -20,12 +25,15 @@ parser = argparse.ArgumentParser(description="infer")
 parser.add_argument('--basemodel',default='pretrained_models/chilloutmixNiPruned_Tw1O',type=str,help='base model path')
 parser.add_argument('--lora_path',default=None,type=str,help='lora model path')
 parser.add_argument('--control_path',default=None,type=str,help='controlnet model path')
-parser.add_argument('--inpait_path',default=None,type=str,help='inpait model path')
+parser.add_argument('--inpait_path',default='pretrained_models/stable-diffusion-inpainting',type=str,help='inpait model path')
+parser.add_argument('--adapter_ckpt',default="pretrained_models/t2iadapter_seg_sd14v1.pth",type=str,help='adapter model path')
+
 parser.add_argument('--ref_img',default=None,type=str,help='ref image path')
 parser.add_argument('--pose_img',default=None,type=str,help='pose image path')
 parser.add_argument('--mask',default=None,type=str,help='mask image path')
+parser.add_argument('--adapter_mask',default=None,type=str,help='adapter_mask path')
 parser.add_argument('--mask_area',default='all',choices=['hair', 'bg','all'])
-parser.add_argument('--mode',default='lora',choices=['lora', 'control','inpait'])
+parser.add_argument('--mode',default='lora',choices=['lora', 'control','inpait','t2iinpait'])
 parser.add_argument('--prompt',default=None,type=str,help='prompt')
 parser.add_argument('--neg_prompt',default='(painting by bad-artist-anime:0.9), (painting by bad-artist:0.9), watermark, text, error, blurry, jpeg artifacts, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, artist name, (worst quality, low quality:1.4), bad anatomy, watermark, signature, text, logo',type=str,help='negative prompt')
 parser.add_argument('--width',default=512,type=int,help='input image width')
@@ -149,11 +157,11 @@ class InpaitInfer(Infer,FaceParsing):
             parsing = self.get_parsing(p_img)
             parsing = self.postprocess_parsing(parsing,h,w)
             mask = np.zeros((h,w,3),dtype=np.uint8)
+           
             for i in self.index:
                 mask[parsing==i] = 255
-            
             mask = mask.astype(np.uint8)
-
+          
         else:
             mask = cv2.imread(args.mask)
         
@@ -161,6 +169,50 @@ class InpaitInfer(Infer,FaceParsing):
         input_kwargs = self.get_input_kwargs()
         input_kwargs['image'] = inp
         input_kwargs['mask_image'] = mask
+        del input_kwargs['cross_attention_kwargs']
+        self.run(input_kwargs)
+
+class T2IInpaitInfer(Infer):
+    def __init__(self, args):
+        super().__init__(args)
+
+        self.pipeline = StableDiffusionInpaitAdapterPipeline.from_pretrained(self.args.inpait_path).to('cuda')
+
+
+        self.pipeline.adapter = T2IAdapter(
+            block_out_channels=[320, 640, 1280, 1280][:4],
+            channels_in=3, 
+            num_res_blocks=2, 
+            kernel_size=1, 
+            res_block_skip=True, 
+            use_conv=False
+        )
+        weight = self.convert_model()
+        
+        self.pipeline.adapter.load_state_dict(weight)
+        self.pipeline.adapter = self.pipeline.adapter.to('cuda')
+        self.set_safety_checker()
+
+    def convert_model(self):
+        weight = torch.load(args.adapter_ckpt)
+        mapping = {}
+        for k in weight.keys():
+
+            if 'in_conv' in k:
+                mapping[k] = k.replace('in_conv','conv1')
+        for old, new in mapping.items():
+            weight[new] = weight.pop(old)
+        return weight
+    def __call__(self):
+
+        img = load_image(args.ref_img)
+        mask = load_image(args.mask)
+        adapter_mask = load_image(args.adapter_mask)
+        
+        input_kwargs = self.get_input_kwargs()
+        input_kwargs['image'] = img
+        input_kwargs['mask_image'] = mask
+        input_kwargs['adapter_image'] = adapter_mask
         del input_kwargs['cross_attention_kwargs']
         self.run(input_kwargs)
 
@@ -174,4 +226,6 @@ if __name__ == "__main__":
         infer = ControlInfer(args)
     elif args.mode == 'inpait':
         infer = InpaitInfer(args)
+    elif args.mode == 't2iinpait':
+        infer = T2IInpaitInfer(args)
     infer()
