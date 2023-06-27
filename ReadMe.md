@@ -1,5 +1,7 @@
 # Simple-Lora
 这是一个区别于[automatic1111 webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui),对开发者更友好的lora训练，或者说虚拟idol训练
+## 好消息
+* google colab端可操作: [![google colab端可操作](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/LeslieZhoa/Simple-Lora/blob/main/demo.ipynb)
 ## 展示
 展示一下我用少量迪丽热巴照片训练的lora效果，一个欧美混血热巴
 ![](./assets/1.png)
