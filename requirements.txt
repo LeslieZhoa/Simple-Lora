@@ -1,5 +1,5 @@
-diffusers[torch]
-transformers
+diffusers[torch]==0.17.1
+transformers==4.30.2
 timm==0.4.12 
 fairscale==0.4.4
 tensorboardX
