@@ -9,7 +9,9 @@ from diffusers import (StableDiffusionPipeline,
                        DPMSolverMultistepScheduler,
                        ControlNetModel,
                        StableDiffusionControlNetPipeline,
-                       StableDiffusionInpaintPipeline)
+                       StableDiffusionInpaintPipeline,
+                       StableDiffusionInstructPix2PixPipeline, 
+                       EulerAncestralDiscreteScheduler)
 
 from model.custom import StableDiffusionInpaitAdapterPipeline,T2IAdapter
 import argparse
@@ -25,6 +27,7 @@ parser = argparse.ArgumentParser(description="infer")
 parser.add_argument('--basemodel',default='pretrained_models/chilloutmixNiPruned_Tw1O',type=str,help='base model path')
 parser.add_argument('--lora_path',default=None,type=str,help='lora model path')
 parser.add_argument('--control_path',default=None,type=str,help='controlnet model path')
+parser.add_argument('--instruct_path',default='pretrained_models/instruct-pix2pix',type=str,help='instruct-pix2pix model path')
 parser.add_argument('--inpait_path',default='pretrained_models/stable-diffusion-inpainting',type=str,help='inpait model path')
 parser.add_argument('--adapter_ckpt',default="pretrained_models/t2iadapter_seg_sd14v1.pth",type=str,help='adapter model path')
 
@@ -33,7 +36,7 @@ parser.add_argument('--pose_img',default=None,type=str,help='pose image path')
 parser.add_argument('--mask',default=None,type=str,help='mask image path')
 parser.add_argument('--adapter_mask',default=None,type=str,help='adapter_mask path')
 parser.add_argument('--mask_area',default='all',choices=['hair', 'bg','all'])
-parser.add_argument('--mode',default='lora',choices=['lora', 'control','inpait','t2iinpait'])
+parser.add_argument('--mode',default='lora',choices=['lora', 'control','inpait','t2iinpait','instruct'])
 parser.add_argument('--prompt',default=None,type=str,help='prompt')
 parser.add_argument('--neg_prompt',default='(painting by bad-artist-anime:0.9), (painting by bad-artist:0.9), watermark, text, error, blurry, jpeg artifacts, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, artist name, (worst quality, low quality:1.4), bad anatomy, watermark, signature, text, logo',type=str,help='negative prompt')
 parser.add_argument('--width',default=512,type=int,help='input image width')
@@ -42,8 +45,9 @@ parser.add_argument('--height',default=512,type=int,help='input image height')
 parser.add_argument('--num_inference_steps',default=50,type=int,help='inference steps number')
 parser.add_argument('--num_images_per_prompt',default=1,type=int,help='generate image number')
 parser.add_argument('--seed',default=3728865715,type=int,help='random seed')
-parser.add_argument('--guidance_scale',default=8,type=int,help='control picture quality')
+parser.add_argument('--guidance_scale',default=8,type=float,help='control picture quality')
 parser.add_argument('--scale',default=1.2,type=float,help='mixed scale')
+parser.add_argument('--image_guidance_scale',default=1.5,type=float,help='push the generated image towards the inital image `image`')
 parser.add_argument('--outpath',default='./1.png',type=str,help='path to save image')
 
 class Infer:
@@ -55,7 +59,7 @@ class Infer:
     def get_input_kwargs(self):
         input_kwargs = {
             'prompt':self.args.prompt, 
-            'negative_prompt':self.args.neg_prompt, 
+            'negative_prompt':self.args.neg_prompt if not self.args.neg_prompt == 'None' else None, 
             'width':self.args.width, 
             'height':self.args.height, 
             'num_inference_steps':self.args.num_inference_steps, 
@@ -218,6 +222,26 @@ class T2IInpaitInfer(Infer):
         del input_kwargs['cross_attention_kwargs']
         self.run(input_kwargs)
 
+class InstructInfer(Infer):
+    def __init__(self, args):
+        super().__init__(args)
+        self.pipeline = StableDiffusionInstructPix2PixPipeline.from_pretrained(self.args.instruct_path,safety_checker=None)
+        self.pipeline.to("cuda")
+        self.pipeline.scheduler = EulerAncestralDiscreteScheduler.from_config(self.pipeline.scheduler.config)
+        self.set_safety_checker()
+
+    def __call__(self):
+        img = load_image(args.ref_img).resize((self.args.width,self.args.height))
+        
+        input_kwargs = self.get_input_kwargs()
+        input_kwargs['image_guidance_scale'] = self.args.image_guidance_scale
+        input_kwargs['image'] = img
+        del input_kwargs['cross_attention_kwargs']
+        del input_kwargs['width']
+        del input_kwargs['height']
+        pdb.set_trace()
+        self.run(input_kwargs)
+
 
 if __name__ == "__main__":
     
@@ -230,4 +254,6 @@ if __name__ == "__main__":
         infer = InpaitInfer(args)
     elif args.mode == 't2iinpait':
         infer = T2IInpaitInfer(args)
+    elif args.mode == 'instruct':
+        infer = InstructInfer(args)
     infer()

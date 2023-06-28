@@ -134,6 +134,24 @@ python inference.py \
     --num_images_per_prompt 2
 ```
 ![](./assets/4.png)
+# Insruct-Pix2Pix风格化
+1. 模型下载
+```py
+cd pretrained_models
+git clone https://huggingface.co/timbrooks/instruct-pix2pix
+```
+2. 推理
+```py
+python inference.py \
+    --mode 'instruct' \
+    --ref_img assets/t2i-input.png \
+    --prompt  "turn her face to comic style" \
+    --neg_prompt None \
+    --image_guidance_scale 1 \
+    --outpath results/1.png \
+    --num_images_per_prompt 1
+```
+![](./assets/5.png)
 ## 参考
 https://github.com/huggingface/diffusers<br>
 https://github.com/AUTOMATIC1111/stable-diffusion-webui<br>
