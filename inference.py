@@ -239,7 +239,7 @@ class InstructInfer(Infer):
         del input_kwargs['cross_attention_kwargs']
         del input_kwargs['width']
         del input_kwargs['height']
-        pdb.set_trace()
+        
         self.run(input_kwargs)
 
 
