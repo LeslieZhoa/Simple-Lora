@@ -153,7 +153,7 @@ python inference.py \
 ```
 ![](./assets/5.png)
 ## 静态照片动起来
-模型主要来源于https://github.com/zhanglonghao1992/One-Shot_Free-View_Neural_Talking_Head_Synthesis,增加了512高清清晰度
+模型主要来源于[FaceVid2Vid](https://github.com/zhanglonghao1992/One-Shot_Free-View_Neural_Talking_Head_Synthesis)增加了512高清清晰度
 ```
 wget https://github.com/LeslieZhoa/Simple-Lora/releases/download/v0.0/script.zip
 unzip script.zip && rm -rf script.zip 
