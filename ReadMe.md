@@ -160,7 +160,8 @@ unzip script.zip && rm -rf script.zip
 python script/run.py  --input assets/6.png
 ffmpeg  -r 25 -f image2 -i results/%06d.png  -vcodec libx264   11.mp4
 ```
-[![Watch the video](./assets/6.png)](./assets/11.mp4)
+https://github.com/LeslieZhoa/Simple-Lora/assets/33117689/397501d8-5307-4f8b-bc40-ac8688f14d55
+
 ## 参考
 https://github.com/huggingface/diffusers<br>
 https://github.com/AUTOMATIC1111/stable-diffusion-webui<br>
