@@ -134,7 +134,7 @@ python inference.py \
     --num_images_per_prompt 2
 ```
 ![](./assets/4.png)
-# Insruct-Pix2Pix风格化
+## Insruct-Pix2Pix风格化
 1. 模型下载
 ```py
 cd pretrained_models
@@ -152,6 +152,15 @@ python inference.py \
     --num_images_per_prompt 1
 ```
 ![](./assets/5.png)
+## 静态照片动起来
+模型主要来源于https://github.com/zhanglonghao1992/One-Shot_Free-View_Neural_Talking_Head_Synthesis,增加了512高清清晰度
+```
+wget https://github.com/LeslieZhoa/Simple-Lora/releases/download/v0.0/script.zip
+unzip script.zip && rm -rf script.zip 
+python script/run.py  --input assets/6.png
+ffmpeg  -r 25 -f image2 -i results/%06d.png  -vcodec libx264   11.mp4
+```
+[![Watch the video](./assets/6.png)](./assets/11.mp4)
 ## 参考
 https://github.com/huggingface/diffusers<br>
 https://github.com/AUTOMATIC1111/stable-diffusion-webui<br>
@@ -161,7 +170,8 @@ https://github.com/lllyasviel/ControlNet<br>
 https://github.com/haofanwang/ControlNet-for-Diffusers<br>
 https://github.com/haofanwang/T2I-Adapter-for-Diffusers<br>
 https://github.com/TencentARC/T2I-Adapter<br>
-https://github.com/HimariO/diffusers-t2i-adapter
+https://github.com/HimariO/diffusers-t2i-adapter<br>
+https://github.com/zhanglonghao1992/One-Shot_Free-View_Neural_Talking_Head_Synthesis
 
 ## Star History
 
