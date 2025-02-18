@@ -6,7 +6,7 @@
 '''
 import torch
 from trainer.ModelTrainer import ModelTrainer
-from diffusers import StableDiffusionPipeline,DPMSolverMultistepScheduler
+from diffusers import StableDiffusionPipeline,DDPMScheduler
 from model.network import Lora
 from diffusers.optimization import get_scheduler
 from utils.utils import *
@@ -25,7 +25,7 @@ class DiffuserTrainer(ModelTrainer,Lora):
         
 
         self.pipeline = StableDiffusionPipeline.from_pretrained(args.basemodel,safety_checker=None).to(self.device)
-        self.noise_scheduler = DPMSolverMultistepScheduler.from_config(
+        self.noise_scheduler = DDPMScheduler.from_config(
                                 self.pipeline.scheduler.config, use_karras_sigmas=True
                             )
         self.text_encoder = self.pipeline.text_encoder.to(self.device)
