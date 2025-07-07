@@ -174,6 +174,4 @@ https://github.com/TencentARC/T2I-Adapter<br>
 https://github.com/HimariO/diffusers-t2i-adapter<br>
 https://github.com/zhanglonghao1992/One-Shot_Free-View_Neural_Talking_Head_Synthesis
 
-## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=LeslieZhoa/Simple-Lora&type=Date)](https://star-history.com/#LeslieZhoa/Simple-Lora&Date)
